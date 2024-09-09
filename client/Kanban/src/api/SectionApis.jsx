@@ -1,4 +1,4 @@
-import interceptor from "./axiosInstance";
+import interceptor from "./AxiosInstance";
 const SectionApi = interceptor;
 
 export async function getSections(userId) {

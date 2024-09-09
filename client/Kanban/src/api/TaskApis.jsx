@@ -1,4 +1,4 @@
-import interceptor from "./axiosInstance";
+import interceptor from "./AxiosInstance";
 const TaskApi = interceptor;
 
 export async function createTask(data, sectionId) {

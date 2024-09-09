@@ -1,4 +1,4 @@
-import interceptor from "./axiosInstance";
+import interceptor from "./AxiosInstance";
 const AuthApi = interceptor;
 
 export async function RegisterUser(data) {
