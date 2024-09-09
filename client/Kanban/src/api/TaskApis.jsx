@@ -1,0 +1,27 @@
+import interceptor from "./axiosInstance";
+const TaskApi = interceptor;
+
+export async function createTask(data, sectionId) {
+  try {
+    const response = await TaskApi.post(`/task/${sectionId}`, data);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}
+export async function updatePosition(data) {
+  try {
+    const response = await TaskApi.put(`/task/update-position`, data);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}
+export async function deleteTask(id) {
+  try {
+    const response = await TaskApi.delete(`/task/${id}`);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}
