@@ -1,24 +1,15 @@
 import React, { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {
-  Button,
-  TextField,
-  Menu,
-  MenuItem,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Avatar,
-} from "@mui/material";
+import { Button, TextField, Menu, MenuItem, Avatar } from "@mui/material";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { create, deleteSection, getSections } from "../../api/SectionApis";
 import toast, { Toaster } from "react-hot-toast";
-import { createTask, deleteTask, updatePosition } from "../../api/TaskApis";
+import { deleteTask, updatePosition } from "../../api/TaskApis";
 import apple from "../../assets/apple.png";
 import RenderDate from "./RenderDate";
 import { useSelector } from "react-redux";
+import TaskModal from "./TaskModal";
 
 function Kanban() {
   const user = useSelector((state) => state.user.userInfo);
@@ -30,10 +21,6 @@ function Kanban() {
   const [selectTask, setSelectTask] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
-  const [task, setTask] = useState({
-    taskTitle: "",
-    description: "",
-  });
 
   const toggleAddSection = () => {
     setAddSection(!addSection);
@@ -127,37 +114,6 @@ function Kanban() {
   const openAddTaskDialog = (section) => {
     setSelectedSection(section);
     setOpenTaskDialog(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTask((prevTask) => ({
-      ...prevTask,
-      [name]: value,
-    }));
-  };
-
-  const addTaskToSection = async () => {
-    if (task.taskTitle.trim() === "") {
-      toast.error("Task title can't be empty!");
-      return;
-    } else if (task.description.trim() === "") {
-      toast.error("Description can't be empty!");
-      return;
-    } else {
-      const response = await createTask(task, selectedSection.id);
-      const newData = [...data];
-      const index = newData.findIndex((e) => e.id === selectedSection.id);
-      newData[index].tasks.unshift(response);
-      setData(newData);
-
-      setTask({
-        taskTitle: "",
-        description: "",
-      });
-      setOpenTaskDialog(false);
-      toast.success("Task added successfully!");
-    }
   };
 
   const onDragEnd = async (result) => {
@@ -342,43 +298,13 @@ function Kanban() {
           </div>
         </div>
       </DragDropContext>
-      <Dialog open={openTaskDialog} onClose={() => setOpenTaskDialog(false)}>
-        <DialogTitle>Add Task</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            id="taskTitle"
-            label="Task Title"
-            fullWidth
-            variant="outlined"
-            name="taskTitle"
-            value={task.taskTitle}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            id="description"
-            label="Description"
-            fullWidth
-            variant="outlined"
-            name="description"
-            value={task.description}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            style={{ color: "#000000" }}
-            onClick={() => setOpenTaskDialog(false)}
-          >
-            Cancel
-          </Button>
-          <Button style={{ color: "#000000" }} onClick={addTaskToSection}>
-            Add Task
-          </Button>
-        </DialogActions>
-      </Dialog>
-
+      <TaskModal
+        data={data}
+        setData={setData}
+        selectedSection={selectedSection}
+        openTaskDialog={openTaskDialog}
+        setOpenTaskDialog={setOpenTaskDialog}
+      />
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
       </Menu>
