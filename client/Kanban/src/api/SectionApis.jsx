@@ -10,7 +10,7 @@ export async function getSections(userId) {
   }
 }
 
-export async function create(data) {
+export async function createSections(data) {
   try {
     const response = await SectionApi.post("/section", data);
     return response.data;

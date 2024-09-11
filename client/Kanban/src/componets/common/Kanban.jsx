@@ -3,13 +3,18 @@ import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button, TextField, Menu, MenuItem, Avatar } from "@mui/material";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { create, deleteSection, getSections } from "../../api/SectionApis";
+import {
+  createSections,
+  deleteSection,
+  getSections,
+} from "../../api/SectionApis";
 import toast, { Toaster } from "react-hot-toast";
 import { deleteTask, updatePosition } from "../../api/TaskApis";
 import apple from "../../assets/apple.png";
 import RenderDate from "./RenderDate";
 import { useSelector } from "react-redux";
 import TaskModal from "./TaskModal";
+import { Loading } from "./Loading";
 
 function Kanban() {
   const user = useSelector((state) => state.user.userInfo);
@@ -21,6 +26,7 @@ function Kanban() {
   const [selectTask, setSelectTask] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const toggleAddSection = () => {
     setAddSection(!addSection);
@@ -32,7 +38,8 @@ function Kanban() {
         toast.error("Section title can't be empty!");
         return;
       }
-      const response = await create({ title: sectionTitle, user });
+      setLoading(true); 
+      const response = await createSections({ title: sectionTitle, user });
       setData((prevData) => [...prevData, { ...response, tasks: [] }]);
       setSectionTitle("");
       setAddSection(false);
@@ -40,6 +47,8 @@ function Kanban() {
     } catch (err) {
       console.log(err);
       toast.error("Failed to add section.");
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -60,14 +69,17 @@ function Kanban() {
     setAnchorEl(event.currentTarget);
     setSelectedSection(section);
   };
+  
   const handleTask = async (e, task) => {
     setSelectTask(task);
     setAnchorE2(e.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
     setAnchorE2(null);
   };
+
   const handleTaskDelete = async () => {
     try {
       if (!selectTask) {
@@ -110,7 +122,6 @@ function Kanban() {
     }
     handleClose();
   };
-
   const openAddTaskDialog = (section) => {
     setSelectedSection(section);
     setOpenTaskDialog(true);
@@ -165,137 +176,147 @@ function Kanban() {
           className="flex flex-row overflow-x-auto"
           style={{ width: "100%" }}
         >
-          {data &&
-            data.map((section, index) => (
-              <Droppable key={section.id} droppableId={section.id}>
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="flex flex-col justify-start w-[270px] h-[100vh] p-2 rounded-lg flex-shrink-0"
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h1>
-                        <strong>{section.title}</strong>
-                      </h1>
-                      <div className="flex gap-2">
-                        <AddIcon
-                          className="text-[#adb5bd] cursor-pointer"
-                          onClick={() => openAddTaskDialog(section)}
-                        />
-                        <MoreHorizIcon
-                          className="text-[#adb5bd] cursor-pointer"
-                          onClick={(e) => handleClick(e, section)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="w-full h-full bg-[#f8f9fa] flex flex-col justify-start items-center p-2 rounded-lg">
-                      {section.tasks &&
-                        section.tasks.map((task, idx) => (
-                          <Draggable
-                            key={task.id}
-                            draggableId={task.id.toString()}
-                            index={idx}
-                          >
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`bg-white w-full mb-2 rounded-lg shadow-md shadow-[#f8f9fa] p-3 ${
-                                  snapshot.isDragging ? "bg-[#e0e0e0]" : ""
-                                }`}
-                              >
-                                <div className="flex justify-between">
-                                  {task.title}
-
-                                  <MoreHorizIcon
-                                    className="text-[#adb5bd]  cursor-pointer text-justify"
-                                    onClick={(e) => handleTask(e, task)}
-                                  />
-                                </div>
-
-                                <div className="flex items-center justify-between text-[13px] text-[#adb5bd] mt-2">
-                                  <div className="flex items-center space-x-2">
-                                    <Avatar
-                                      alt="Remy Sharp"
-                                      src={apple}
-                                      sx={{ width: 26, height: 26 }}
-                                    />
-                                    <span>
-                                      <RenderDate updatedAt={task.updatedAt} />
-                                    </span>
-                                  </div>
-
-                                  <h1 className="bg-[#f8f9fa] p-1 rounded-md text-center inline-block">
-                                    {task.description}
-                                  </h1>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                      {provided.placeholder}
-
-                      <Button
-                        sx={{
-                          textTransform: "none",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                        onClick={() => openAddTaskDialog(section)}
+          {loading ? (
+            <Loading />
+          ) : (
+            <>
+              {data &&
+                data.map((section, index) => (
+                  <Droppable key={section.id} droppableId={section.id}>
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="flex flex-col justify-start w-[270px] h-[100vh] p-2 rounded-lg flex-shrink-0"
                       >
-                        <AddIcon className="text-[#adb5bd] text-[10px]" />
-                        <span className="text-[#adb5bd] text-[12px]">
-                          Add task
-                        </span>
-                      </Button>
+                        <div className="flex justify-between items-center mb-4">
+                          <h1>
+                            <strong>{section.title}</strong>
+                          </h1>
+                          <div className="flex gap-2">
+                            <AddIcon
+                              className="text-[#adb5bd] cursor-pointer"
+                              onClick={() => openAddTaskDialog(section)}
+                            />
+                            <MoreHorizIcon
+                              className="text-[#adb5bd] cursor-pointer"
+                              onClick={(e) => handleClick(e, section)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="w-full h-full bg-[#f8f9fa] flex flex-col justify-start items-center p-2 rounded-lg">
+                          {section.tasks &&
+                            section.tasks.map((task, idx) => (
+                              <Draggable
+                                key={task.id}
+                                draggableId={task.id.toString()}
+                                index={idx}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={`bg-white w-full mb-2 rounded-lg shadow-md shadow-[#f8f9fa] p-3 ${
+                                      snapshot.isDragging ? "bg-[#e0e0e0]" : ""
+                                    }`}
+                                  >
+                                    <div className="flex justify-between">
+                                      {task.title}
+
+                                      <MoreHorizIcon
+                                        className="text-[#adb5bd]  cursor-pointer text-justify"
+                                        onClick={(e) => handleTask(e, task)}
+                                      />
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[13px] text-[#adb5bd] mt-2">
+                                      <div className="flex items-center space-x-2">
+                                        <Avatar
+                                          alt="Remy Sharp"
+                                          src={apple}
+                                          sx={{ width: 26, height: 26 }}
+                                        />
+                                        <span>
+                                          <RenderDate
+                                            updatedAt={task.updatedAt}
+                                          />
+                                        </span>
+                                      </div>
+
+                                      <h1 className="bg-[#f8f9fa] p-1 rounded-md text-center inline-block">
+                                        {task.description}
+                                      </h1>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                          {provided.placeholder}
+
+                          <Button
+                            sx={{
+                              textTransform: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                            onClick={() => openAddTaskDialog(section)}
+                          >
+                            <AddIcon className="text-[#adb5bd] text-[10px]" />
+                            <span className="text-[#adb5bd] text-[12px]">
+                              Add task
+                            </span>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Droppable>
+                ))}
+
+              <div className="flex flex-col justify-start w-[300px] h-[100vh] p-2 rounded-lg flex-shrink-0">
+                {addSection ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-4 w-[200px]">
+                      <TextField
+                        value={sectionTitle}
+                        onChange={(e) => setSectionTitle(e.target.value)}
+                        placeholder="Untitled"
+                        variant="outlined"
+                        sx={{
+                          width: "90px",
+                          flexGrow: 1,
+                          "& .MuiOutlinedInput-input": { padding: "4px" },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "unset",
+                          },
+                          "& .MuiOutlinedInput-root": {
+                            fontSize: "1rem",
+                            fontWeight: "700",
+                          },
+                        }}
+                      />
+                      <AddIcon
+                        className="text-[#b9c1c9] cursor-pointer"
+                        onClick={createSection}
+                      />
                     </div>
+                  </>
+                ) : (
+                  <div
+                    onClick={toggleAddSection}
+                    className="flex mb-4 cursor-pointer"
+                  >
+                    <AddIcon className="text-[#adb5bd]" />
+                    <h1 className="text-[#adb5bd]">
+                      <strong>Add Section</strong>
+                    </h1>
                   </div>
                 )}
-              </Droppable>
-            ))}
-
-          <div className="flex flex-col justify-start w-[300px] h-[100vh] p-2 rounded-lg flex-shrink-0">
-            {addSection ? (
-              <>
-                <div className="flex items-center gap-2 mb-4 w-[200px]">
-                  <TextField
-                    value={sectionTitle}
-                    onChange={(e) => setSectionTitle(e.target.value)}
-                    placeholder="Untitled"
-                    variant="outlined"
-                    sx={{
-                      width: "90px",
-                      flexGrow: 1,
-                      "& .MuiOutlinedInput-input": { padding: "4px" },
-                      "& .MuiOutlinedInput-notchedOutline": { border: "unset" },
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: "1rem",
-                        fontWeight: "700",
-                      },
-                    }}
-                  />
-                  <AddIcon
-                    className="text-[#b9c1c9] cursor-pointer"
-                    onClick={createSection}
-                  />
-                </div>
-              </>
-            ) : (
-              <div
-                onClick={toggleAddSection}
-                className="flex mb-4 cursor-pointer"
-              >
-                <AddIcon className="text-[#adb5bd]" />
-                <h1 className="text-[#adb5bd]">
-                  <strong>Add Section</strong>
-                </h1>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </DragDropContext>
       <TaskModal

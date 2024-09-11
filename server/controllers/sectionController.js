@@ -27,7 +27,7 @@ const getSections = async (req, res) => {
 };
 
 
-const create = async (req, res) => {
+const createSection = async (req, res) => {
   try {
     const { title, user } = req.body;
     const section = await Section.create({
@@ -53,4 +53,4 @@ const deleteSection = async (req, res) => {
   }
 };
 
-export { create, getSections, deleteSection };
+export { createSection, getSections, deleteSection };
