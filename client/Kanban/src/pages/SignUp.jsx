@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
 import { setUserDetails } from "../redux/Slices/UserSlice";
-import { LoginUser, RegisterUser } from "../api/AuthApis";
+import {  RegisterUser } from "../api/AuthApis";
 
 function SignUp() {
   const navigate = useNavigate();

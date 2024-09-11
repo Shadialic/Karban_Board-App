@@ -47,7 +47,7 @@ function SignIn() {
         const response = await LoginUser(formData);
         if (response.status) {
           const { token } = response;
-          localStorage.setItem("KarbanToken", token);
+          localStorage.setItem("KanbanToken", token);
           dispatch(
             setUserDetails({
               id: response.Data._id,

@@ -1,7 +1,7 @@
 import {Navigate} from 'react-router-dom'
 
 function UserPublic(props) {
-      if(localStorage.getItem('KarbanToken')){
+      if(localStorage.getItem('KanbanToken')){
         return <Navigate to='/'/>
       }else{
         <Navigate to='/login'/>
