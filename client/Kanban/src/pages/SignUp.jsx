@@ -187,7 +187,7 @@ function SignUp() {
             SIGN Up
           </Button>
           <Typography variant="body2" sx={{ textAlign: "center", mt: 2 }}>
-            You dont have an account?{" "}
+            Already have an account?{" "}
             <Button
               variant="text"
               onClick={handleClick}

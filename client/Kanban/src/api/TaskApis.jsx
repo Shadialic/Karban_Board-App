@@ -25,3 +25,13 @@ export async function deleteTask(id) {
     console.log(err);
   }
 }
+export async function EditTask(data) {
+  console.log(data,'dfdsfsfsdfsdf');
+  
+  try {
+    const response = await TaskApi.put(`/task/edit-task`,data);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}

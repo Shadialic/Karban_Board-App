@@ -76,4 +76,38 @@ const updatePosition = async (req, res) => {
   }
 };
 
-export { taskCreate, deleteTask, updatePosition };
+const editTask = async (req, res) => {
+  try {
+    console.log(req.body, "req.body");
+
+    const { id, taskTitle, description } = req.body;
+
+    if (!id || !taskTitle || !description) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          title: taskTitle,
+          description: description,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+
+    console.log(updatedTask, "updatedTask");
+
+    return res.status(200).json(updatedTask);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export { taskCreate, deleteTask, updatePosition, editTask };

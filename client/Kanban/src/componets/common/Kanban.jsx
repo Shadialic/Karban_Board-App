@@ -27,10 +27,9 @@ function Kanban() {
   const [selectedSection, setSelectedSection] = useState(null);
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editTask, setEditTask] = useState(false);
 
-  const toggleAddSection = () => {
-    setAddSection(!addSection);
-  };
+  const toggleAddSection = () => {};
 
   const createSection = async () => {
     try {
@@ -38,7 +37,7 @@ function Kanban() {
         toast.error("Section title can't be empty!");
         return;
       }
-      setLoading(true); 
+      setLoading(true);
       const response = await createSections({ title: sectionTitle, user });
       setData((prevData) => [...prevData, { ...response, tasks: [] }]);
       setSectionTitle("");
@@ -48,28 +47,32 @@ function Kanban() {
       console.log(err);
       toast.error("Failed to add section.");
     } finally {
-      setLoading(false); 
+      setLoading(false);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      setLoading(true);
+      const response = await getSections(user.id);
+      setData(response.map((section) => ({ ...section })));
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to fetch sections.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        const response = await getSections(user.id);
-        setData(response.map((section) => ({ ...section })));
-      } catch (err) {
-        console.log(err);
-        toast.error("Failed to fetch sections.");
-      }
-    };
     fetchSections();
-  }, [data]);
+  }, []);
 
   const handleClick = (event, section) => {
     setAnchorEl(event.currentTarget);
     setSelectedSection(section);
   };
-  
+
   const handleTask = async (e, task) => {
     setSelectTask(task);
     setAnchorE2(e.currentTarget);
@@ -78,6 +81,7 @@ function Kanban() {
   const handleClose = () => {
     setAnchorEl(null);
     setAnchorE2(null);
+    setEditTask(false)
   };
 
   const handleTaskDelete = async () => {
@@ -86,44 +90,45 @@ function Kanban() {
         toast.error("No task selected for deletion.");
         return;
       }
+      setLoading(true);
       await deleteTask(selectTask.id);
-      setData((prevData) =>
-        prevData.map((section) =>
-          section.id === selectTask.sectionId
-            ? {
-                ...section,
-                tasks: section.tasks.filter(
-                  (task) => task.id !== selectTask.id
-                ),
-              }
-            : section
-        )
-      );
-
+      fetchSections();
       setSelectTask(null);
       handleClose();
       toast.success("Task deleted successfully!");
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete task.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async () => {
     try {
+      setLoading(true);
       await deleteSection(selectedSection.id);
       setData((prevData) =>
         prevData.filter((item) => item.id !== selectedSection.id)
       );
+      handleClose();
+
       toast.success("Section deleted successfully!");
     } catch (err) {
       console.log(err);
       toast.error("Failed to delete section.");
+    } finally {
+      setLoading(false);
     }
-    handleClose();
   };
   const openAddTaskDialog = (section) => {
     setSelectedSection(section);
+    setAnchorE2(null);
+    setOpenTaskDialog(true);
+  };
+
+  const handleEditTask = async () => {
+    setEditTask(true);
     setOpenTaskDialog(true);
   };
 
@@ -325,13 +330,30 @@ function Kanban() {
         selectedSection={selectedSection}
         openTaskDialog={openTaskDialog}
         setOpenTaskDialog={setOpenTaskDialog}
+        editTask={editTask}
+        selectTask={selectTask}
+        fetchSections={fetchSections}
+        handleClose={handleClose}
       />
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
-      <Menu anchorEl={anchorE2} open={Boolean(anchorE2)} onClose={handleClose}>
-        <MenuItem onClick={handleTaskDelete}>Delete</MenuItem>
-      </Menu>
+      {!loading && (
+        <>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={handleDelete}>Delete</MenuItem>
+          </Menu>
+          <Menu
+            anchorEl={anchorE2}
+            open={Boolean(anchorE2)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={handleTaskDelete}>Delete</MenuItem>
+            <MenuItem onClick={handleEditTask}>Edit</MenuItem>
+          </Menu>
+        </>
+      )}
       <Toaster />
     </div>
   );
