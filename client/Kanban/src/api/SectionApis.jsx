@@ -26,3 +26,12 @@ export async function deleteSection(id) {
     console.log(err);
   }
 }
+export async function editToSection(data) {
+  console.log(data,'dfdsfsfsdfsdf');
+  try {
+    const response = await SectionApi.put(`/section/edit-section`,data);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}

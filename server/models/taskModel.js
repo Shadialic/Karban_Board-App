@@ -8,12 +8,24 @@ const taskSchema = new mongoose.Schema(
       ref: "Section",
       required: true,
     },
+    owner:{
+      type: String,
+      default: "",
+    },
     title: {
       type: String,
       default: "",
     },
     description: {
       type: String,
+      default: "",
+    },
+    tag: {
+      type: String,
+      default: "",
+    },
+    duration_date: {
+      type: Number,
       default: "",
     },
     position: {

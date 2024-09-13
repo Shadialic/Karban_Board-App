@@ -3,9 +3,11 @@ import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button, TextField, Menu, MenuItem, Avatar } from "@mui/material";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import CheckIcon from "@mui/icons-material/Check";
 import {
   createSections,
   deleteSection,
+  editToSection,
   getSections,
 } from "../../api/SectionApis";
 import toast, { Toaster } from "react-hot-toast";
@@ -15,10 +17,12 @@ import RenderDate from "./RenderDate";
 import { useSelector } from "react-redux";
 import TaskModal from "./TaskModal";
 import { Loading } from "./Loading";
-
+import TaskReview from "./TaskReview";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 function Kanban() {
   const user = useSelector((state) => state.user.userInfo);
   const [data, setData] = useState([]);
+  const [owners, setOwners] = useState([]);
   const [addSection, setAddSection] = useState(false);
   const [sectionTitle, setSectionTitle] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
@@ -28,8 +32,13 @@ function Kanban() {
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editTask, setEditTask] = useState(false);
+  const [editSection, setEditSection] = useState(false);
+  const [sectionToEdit, setSectionToEdit] = useState(null);
+  const [open, setOpen] = React.useState(false);
 
-  const toggleAddSection = () => {};
+  const toggleAddSection = () => {
+    setAddSection((prevState) => !prevState);
+  };
 
   const createSection = async () => {
     try {
@@ -55,7 +64,9 @@ function Kanban() {
     try {
       setLoading(true);
       const response = await getSections(user.id);
-      setData(response.map((section) => ({ ...section })));
+      console.log(response, "response");
+      setData(response.sections.map((section) => ({ ...section })));
+      setOwners(response.users.map((user) => ({ ...user })));
     } catch (err) {
       console.log(err);
       toast.error("Failed to fetch sections.");
@@ -71,6 +82,12 @@ function Kanban() {
   const handleClick = (event, section) => {
     setAnchorEl(event.currentTarget);
     setSelectedSection(section);
+    setSectionToEdit(section);
+  };
+
+  const viewTask = (e, task) => {
+    setOpen(true);
+    setSelectTask(task);
   };
 
   const handleTask = async (e, task) => {
@@ -81,7 +98,7 @@ function Kanban() {
   const handleClose = () => {
     setAnchorEl(null);
     setAnchorE2(null);
-    setEditTask(false)
+    setEditTask(false);
   };
 
   const handleTaskDelete = async () => {
@@ -103,8 +120,18 @@ function Kanban() {
       setLoading(false);
     }
   };
+  const handleEditSection = () => {
+    setEditSection(true);
+    handleClose();
+  };
 
-  const handleDelete = async () => {
+  const EditToSection = async () => {
+    await editToSection(sectionToEdit);
+    setEditSection(false);
+    fetchSections();
+  };
+
+  const handleDeleteSection = async () => {
     try {
       setLoading(true);
       await deleteSection(selectedSection.id);
@@ -173,6 +200,7 @@ function Kanban() {
       console.error(error);
     }
   };
+  console.log(owners, "dfkff");
 
   return (
     <div className="relative top-20 left-0 p-6 flex overflow-x-auto space-x-4">
@@ -195,19 +223,61 @@ function Kanban() {
                         className="flex flex-col justify-start w-[270px] h-[100vh] p-2 rounded-lg flex-shrink-0"
                       >
                         <div className="flex justify-between items-center mb-4">
-                          <h1>
-                            <strong>{section.title}</strong>
-                          </h1>
-                          <div className="flex gap-2">
-                            <AddIcon
-                              className="text-[#adb5bd] cursor-pointer"
-                              onClick={() => openAddTaskDialog(section)}
-                            />
-                            <MoreHorizIcon
-                              className="text-[#adb5bd] cursor-pointer"
-                              onClick={(e) => handleClick(e, section)}
-                            />
-                          </div>
+                          {editSection && sectionToEdit?.id === section.id ? (
+                            <>
+                              <TextField
+                                value={sectionToEdit.title}
+                                onChange={(e) =>
+                                  setSectionToEdit({
+                                    ...sectionToEdit,
+                                    title: e.target.value,
+                                  })
+                                }
+                                placeholder="Untitled"
+                                variant="outlined"
+                                sx={{
+                                  backgroundColor: "black",
+                                  color: "white",
+                                  width: "90px",
+                                  borderRadius: "5px",
+                                  "& .MuiOutlinedInput-input": {
+                                    padding: "4px",
+                                    color: "white",
+                                  },
+                                  flexGrow: 1,
+                                  "& .MuiOutlinedInput-root": {
+                                    fontSize: "1rem",
+                                    fontWeight: "700",
+                                    cursor: "pointer",
+                                    "&:hover fieldset": {
+                                      border: "unset",
+                                    },
+                                  },
+                                }}
+                              />
+                              <CheckIcon
+                                className="cursor-pointer"
+                                onClick={EditToSection}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <h1>
+                                <strong>{section.title}</strong>
+                              </h1>
+
+                              <div className="flex gap-2">
+                                <AddIcon
+                                  className="text-[#adb5bd] cursor-pointer"
+                                  onClick={() => openAddTaskDialog(section)}
+                                />
+                                <MoreHorizIcon
+                                  className="text-[#adb5bd] cursor-pointer"
+                                  onClick={(e) => handleClick(e, section)}
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         <div className="w-full h-full bg-[#f8f9fa] flex flex-col justify-start items-center p-2 rounded-lg">
@@ -227,13 +297,20 @@ function Kanban() {
                                       snapshot.isDragging ? "bg-[#e0e0e0]" : ""
                                     }`}
                                   >
-                                    <div className="flex justify-between">
-                                      {task.title}
+                                    <div className="flex justify-between items-center">
+                                      <div className="flex-1">{task.title}</div>
+                                      <div className="flex gap-2">
+                                        <OpenInFullIcon
+                                          onClick={(e) => viewTask(e, task)}
+                                          className="text-[#adb5bd] cursor-pointer"
+                                          fontSize="small"
+                                        />
 
-                                      <MoreHorizIcon
-                                        className="text-[#adb5bd]  cursor-pointer text-justify"
-                                        onClick={(e) => handleTask(e, task)}
-                                      />
+                                        <MoreHorizIcon
+                                          className="text-[#adb5bd] cursor-pointer "
+                                          onClick={(e) => handleTask(e, task)}
+                                        />
+                                      </div>
                                     </div>
 
                                     <div className="flex items-center justify-between text-[13px] text-[#adb5bd] mt-2">
@@ -245,13 +322,13 @@ function Kanban() {
                                         />
                                         <span>
                                           <RenderDate
-                                            updatedAt={task.updatedAt}
+                                            updatedAt={task.duration_date}
                                           />
                                         </span>
                                       </div>
 
                                       <h1 className="bg-[#f8f9fa] p-1 rounded-md text-center inline-block">
-                                        {task.description}
+                                        {task.tag}
                                       </h1>
                                     </div>
                                   </div>
@@ -334,7 +411,9 @@ function Kanban() {
         selectTask={selectTask}
         fetchSections={fetchSections}
         handleClose={handleClose}
+        owners={owners}
       />
+      <TaskReview open={open} setOpen={setOpen} selectTask={selectTask} />
       {!loading && (
         <>
           <Menu
@@ -342,7 +421,8 @@ function Kanban() {
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
-            <MenuItem onClick={handleDelete}>Delete</MenuItem>
+            <MenuItem onClick={handleEditSection}>Edit</MenuItem>
+            <MenuItem onClick={handleDeleteSection}>Delete</MenuItem>
           </Menu>
           <Menu
             anchorEl={anchorE2}

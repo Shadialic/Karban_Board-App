@@ -3,6 +3,7 @@ import KeyboardBackspaceSharpIcon from "@mui/icons-material/KeyboardBackspaceSha
 import share from "../../assets/share-symbol.png";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AppleIcon from "@mui/icons-material/Apple";
+import Date_Time from "../common/Date_Time";
 function Navbar() {
   const buttonStyle = {
     borderColor: "#dee2e6",
@@ -52,6 +53,7 @@ function Navbar() {
       </div>
 
       <div className="flex gap-2 items-center ml-auto">
+        <Date_Time />
         <div className="relative flex items-center">
           <svg
             className="w-4 h-4 text-gray-500 absolute left-3"

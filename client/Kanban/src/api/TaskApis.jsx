@@ -27,7 +27,6 @@ export async function deleteTask(id) {
 }
 export async function EditTask(data) {
   console.log(data,'dfdsfsfsdfsdf');
-  
   try {
     const response = await TaskApi.put(`/task/edit-task`,data);
     return response.data;
@@ -35,3 +34,4 @@ export async function EditTask(data) {
     console.log(err);
   }
 }
+

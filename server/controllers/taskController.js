@@ -3,17 +3,26 @@ import Task from "../models/taskModel.js";
 
 const taskCreate = async (req, res) => {
   const { sectionId } = req.params;
-  const { taskTitle, description } = req.body;
+  const { taskTitle, description, tag, duration_date, owner } = req.body;
   try {
     const section = await Section.findById(sectionId);
     if (!section) {
       return res.status(404).json({ message: "Section not found" });
     }
+    const durationTimestamp = new Date(duration_date).getTime();
+
+    if (isNaN(durationTimestamp)) {
+      return res.status(400).json({ message: "Invalid duration date format." });
+    }
+
     const tasksCount = await Task.find({ section: sectionId }).countDocuments();
     const task = new Task({
+      owner: owner,
       section: sectionId,
       title: taskTitle,
       description: description,
+      tag: tag,
+      duration_date: durationTimestamp,
       position: tasksCount,
     });
     await task.save();
@@ -78,20 +87,22 @@ const updatePosition = async (req, res) => {
 
 const editTask = async (req, res) => {
   try {
-    console.log(req.body, "req.body");
-
-    const { id, taskTitle, description } = req.body;
-
+    const { id, taskTitle, description, tag, duration_date } = req.body;
     if (!id || !taskTitle || !description) {
       return res.status(400).json({ message: "All fields are required." });
     }
-
+    const durationTimestamp = new Date(duration_date).getTime();
+    if (isNaN(durationTimestamp)) {
+      return res.status(400).json({ message: "Invalid duration date format." });
+    }
     const updatedTask = await Task.findByIdAndUpdate(
       id,
       {
         $set: {
           title: taskTitle,
           description: description,
+          tag: tag,
+          duration_date: durationTimestamp,
         },
       },
       { new: true }
@@ -100,9 +111,6 @@ const editTask = async (req, res) => {
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found." });
     }
-
-    console.log(updatedTask, "updatedTask");
-
     return res.status(200).json(updatedTask);
   } catch (err) {
     console.error(err);
