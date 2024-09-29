@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { Button, TextField, Menu, MenuItem, Avatar } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Menu,
+  MenuItem,
+  Avatar,
+  Tooltip,
+} from "@mui/material";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import CheckIcon from "@mui/icons-material/Check";
 import {
@@ -53,8 +60,7 @@ function Kanban() {
       setAddSection(false);
       toast.success("Section added successfully!");
     } catch (err) {
-      console.log(err);
-      toast.error("Failed to add section.");
+      toast.error(err);
     } finally {
       setLoading(false);
     }
@@ -200,10 +206,9 @@ function Kanban() {
       console.error(error);
     }
   };
-  console.log(owners, "dfkff");
 
   return (
-    <div className="relative top-20 left-0 p-6 flex overflow-x-auto space-x-4">
+    <div className="relative top-20 left-0 p-6 flex overflow-x-auto custom-scroll-container space-x-4">
       <DragDropContext onDragEnd={onDragEnd}>
         <div
           className="flex flex-row overflow-x-auto"
@@ -267,14 +272,19 @@ function Kanban() {
                               </h1>
 
                               <div className="flex gap-2">
-                                <AddIcon
-                                  className="text-[#adb5bd] cursor-pointer"
-                                  onClick={() => openAddTaskDialog(section)}
-                                />
-                                <MoreHorizIcon
-                                  className="text-[#adb5bd] cursor-pointer"
-                                  onClick={(e) => handleClick(e, section)}
-                                />
+                                <Tooltip title="add task">
+                                  <AddIcon
+                                    className="text-[#adb5bd] cursor-pointer"
+                                    onClick={() => openAddTaskDialog(section)}
+                                  />
+                                </Tooltip>
+
+                                <Tooltip title="more">
+                                  <MoreHorizIcon
+                                    className="text-[#adb5bd] cursor-pointer"
+                                    onClick={(e) => handleClick(e, section)}
+                                  />
+                                </Tooltip>
                               </div>
                             </>
                           )}
@@ -300,26 +310,35 @@ function Kanban() {
                                     <div className="flex justify-between items-center">
                                       <div className="flex-1">{task.title}</div>
                                       <div className="flex gap-2">
-                                        <OpenInFullIcon
-                                          onClick={(e) => viewTask(e, task)}
-                                          className="text-[#adb5bd] cursor-pointer"
-                                          fontSize="small"
-                                        />
-
-                                        <MoreHorizIcon
-                                          className="text-[#adb5bd] cursor-pointer "
-                                          onClick={(e) => handleTask(e, task)}
-                                        />
+                                        <Tooltip title="view">
+                                          <OpenInFullIcon
+                                            onClick={(e) => viewTask(e, task)}
+                                            className="text-[#adb5bd] cursor-pointer"
+                                            fontSize="small"
+                                          />
+                                        </Tooltip>
+                                        <Tooltip title="more">
+                                          <MoreHorizIcon
+                                            className="text-[#adb5bd] cursor-pointer "
+                                            onClick={(e) => handleTask(e, task)}
+                                          />
+                                        </Tooltip>
                                       </div>
                                     </div>
 
                                     <div className="flex items-center justify-between text-[13px] text-[#adb5bd] mt-2">
                                       <div className="flex items-center space-x-2">
                                         <Avatar
-                                          alt="Remy Sharp"
-                                          src={apple}
-                                          sx={{ width: 26, height: 26 }}
-                                        />
+                                          sx={{
+                                            width: 26,
+                                            height: 26,
+                                            backgroundColor: "#000000",
+                                          }}
+                                        >
+                                          {task.owner[0] &&
+                                            task.owner[0].toUpperCase()}
+                                        </Avatar>
+
                                         <span>
                                           <RenderDate
                                             updatedAt={task.duration_date}
@@ -379,10 +398,12 @@ function Kanban() {
                           },
                         }}
                       />
-                      <AddIcon
-                        className="text-[#b9c1c9] cursor-pointer"
-                        onClick={createSection}
-                      />
+                      <Tooltip title="add section">
+                        <AddIcon
+                          className="text-[#b9c1c9] cursor-pointer"
+                          onClick={createSection}
+                        />
+                      </Tooltip>
                     </div>
                   </>
                 ) : (
@@ -390,7 +411,10 @@ function Kanban() {
                     onClick={toggleAddSection}
                     className="flex mb-4 cursor-pointer"
                   >
-                    <AddIcon className="text-[#adb5bd]" />
+                    <Tooltip title="add section">
+                      <AddIcon className="text-[#adb5bd]" />
+                    </Tooltip>
+
                     <h1 className="text-[#adb5bd]">
                       <strong>Add Section</strong>
                     </h1>

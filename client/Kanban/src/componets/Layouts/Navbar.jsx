@@ -1,10 +1,27 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Menu, MenuItem } from "@mui/material";
 import KeyboardBackspaceSharpIcon from "@mui/icons-material/KeyboardBackspaceSharp";
 import share from "../../assets/share-symbol.png";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AppleIcon from "@mui/icons-material/Apple";
 import Date_Time from "../common/Date_Time";
+import { useState } from "react";
+
 function Navbar() {
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleSettings = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('KanbanToken');
+    setAnchorEl(null);
+  };
+  const handleClose=()=>{
+    setAnchorEl(null);
+
+  }
+
   const buttonStyle = {
     borderColor: "#dee2e6",
     color: "#adb5bd",
@@ -79,10 +96,27 @@ function Navbar() {
         <Button variant="outlined" sx={buttonStyle}>
           <img className="w-6" src={share} alt="" />
         </Button>
-        <Button variant="outlined" sx={buttonStyle}>
+        <Button variant="outlined" sx={buttonStyle} onClick={handleSettings}>
           <SettingsIcon />
         </Button>
       </div>
+
+      {/* Menu Component */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <MenuItem onClick={logout}>Logout</MenuItem>
+      </Menu>
     </Box>
   );
 }

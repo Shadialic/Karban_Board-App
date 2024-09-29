@@ -38,8 +38,6 @@ function TaskModal({
     duration_date: null,
     owner: "",
   });
-  console.log(selectTask, "selectTask");
-
   useEffect(() => {
     if (editTask && selectTask) {
       setTask({
@@ -103,6 +101,9 @@ function TaskModal({
     }
     if (!task.duration_date) {
       toast.error("Duration date can't be empty!");
+      return false;
+    }else if (new Date(task.duration_date) <= new Date()) {
+      toast.error("Add feature date!");
       return false;
     }
     return true;

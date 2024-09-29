@@ -10,7 +10,7 @@ const sectionSchema = new mongoose.Schema({
     type: String,
     default: ''
   }
-}, schemaOptions)
+},schemaOptions)
 
 const Section = mongoose.model("Section", sectionSchema);
 export default Section;

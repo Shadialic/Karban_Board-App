@@ -3,3 +3,28 @@
   margin: 0 auto;
 }
 
+.custom-scroll-container {
+  position: relative;
+  top: 20px;
+  left: 0;
+  padding: 6px;
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap; 
+  scrollbar-width: thin; 
+  scrollbar-color: #0c0202 #fafafa; 
+}
+
+.custom-scroll-container::-webkit-scrollbar {
+  height: 6px; 
+}
+
+.custom-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #dac7c7; 
+  border-radius: 10px; 
+}
+
+.custom-scroll-container::-webkit-scrollbar-track {
+  background-color: #ecdcdc; 
+  border-radius: 10px; 
+}
